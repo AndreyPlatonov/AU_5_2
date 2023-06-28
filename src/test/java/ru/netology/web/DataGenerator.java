@@ -15,7 +15,7 @@ public class DataGenerator {
                 "active");
     }
 
-    public static String generatedJson(RegistrationInfo info){
+    public static String generatedJson(RegistrationInfo info) {
         Gson gson = new Gson();
         return gson.toJson(info);
     }

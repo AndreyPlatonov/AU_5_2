@@ -29,6 +29,7 @@ public class AuthTest {
     public void setUp() {
         open("http://localhost:9999/");
     }
+
     @Test
     void shouldBeSuccess() {
         // сам запрос
@@ -92,6 +93,7 @@ public class AuthTest {
         $(".heading").shouldHave(Condition.exactText("  Личный кабинет")).shouldBe(Condition.visible);
 
     }
+
     @Test
     void shouldBeBlockedUser() {
         // сам запрос
@@ -114,6 +116,7 @@ public class AuthTest {
         $("[data-test-id=action-login].button").click();
         $("[data-test-id=error-notification].notification .notification__content").shouldHave(Condition.exactText("Ошибка! Пользователь заблокирован"), Duration.ofSeconds(5)).shouldBe(Condition.visible);
     }
+
     @Test
     void shouldBeFailedStatus() {
         // сам запрос
@@ -152,9 +155,109 @@ public class AuthTest {
         $("[data-test-id=login] input").setValue(infoClient.getLogin());
         $("[data-test-id=password] input").setValue(infoClient.getPassword());
         $("[data-test-id=action-login].button").click();
-        $("[data-test-id=password].input .input__sub").shouldHave(Condition.exactText("Поле обязательно для заполнения"), Duration.ofSeconds(5)).shouldBe(Condition.visible);
+        $("[data-test-id=password].input .input__sub").shouldHave(Condition.exactText("Поле обязательно для заполнения")).shouldBe(Condition.visible);
     }
 
+    @Test
+    void shouldBeNullLogin() {
+        // сам запрос
 
+        DataGenerator userInfo = new DataGenerator();
+        RegistrationInfo infoClient = userInfo.generatedByInfo();
+        infoClient.setLogin("");
+        String userJson = userInfo.generatedJson(infoClient);
 
+        given() // "дано"
+                .spec(requestSpec) // указываем, какую спецификацию используем
+                .body(userJson) // передаём в теле объект, который будет преобразован в JSON
+                .when() // "когда"
+                .post("/api/system/users") // на какой путь относительно BaseUri отправляем запрос
+                .then() // "тогда ожидаем"
+                .statusCode(200); // код 200 OK
+
+        $("[data-test-id=login] input").setValue(infoClient.getLogin());
+        $("[data-test-id=password] input").setValue(infoClient.getPassword());
+        $("[data-test-id=action-login].button").click();
+        $("[data-test-id=login].input .input__sub").shouldHave(Condition.exactText("Поле обязательно для заполнения")).shouldBe(Condition.visible);
+    }
+
+    @Test
+    void shouldBeFromActiveToBlocked() {
+        // сам запрос
+
+        DataGenerator userInfo = new DataGenerator();
+        RegistrationInfo infoClient = userInfo.generatedByInfo();
+        String userJson = userInfo.generatedJson(infoClient);
+
+        given() // "дано"
+                .spec(requestSpec) // указываем, какую спецификацию используем
+                .body(userJson) // передаём в теле объект, который будет преобразован в JSON
+                .when() // "когда"
+                .post("/api/system/users") // на какой путь относительно BaseUri отправляем запрос
+                .then() // "тогда ожидаем"
+                .statusCode(200); // код 200 OK
+
+        $("[data-test-id=login] input").setValue(infoClient.getLogin());
+        $("[data-test-id=password] input").setValue(infoClient.getPassword());
+        $("[data-test-id=action-login].button").click();
+        $(".heading").shouldHave(Condition.exactText("  Личный кабинет")).shouldBe(Condition.visible);
+
+        infoClient.setStatus("blocked");
+        String userJsonSame = userInfo.generatedJson(infoClient);
+
+        open("http://localhost:9999/");
+        given() // "дано"
+                .spec(requestSpec) // указываем, какую спецификацию используем
+                .body(userJsonSame) // передаём в теле объект, который будет преобразован в JSON
+                .when() // "когда"
+                .post("/api/system/users") // на какой путь относительно BaseUri отправляем запрос
+                .then() // "тогда ожидаем"
+                .statusCode(200); // код 200 OK
+
+        $("[data-test-id=login] input").setValue(infoClient.getLogin());
+        $("[data-test-id=password] input").setValue(infoClient.getPassword());
+        $("[data-test-id=action-login].button").click();
+        $("[data-test-id=error-notification].notification .notification__content").shouldHave(Condition.exactText("Ошибка! Пользователь заблокирован"), Duration.ofSeconds(5)).shouldBe(Condition.visible);
+
+    }
+
+    @Test
+    void shouldBeFromBlockedToActive() {
+        // сам запрос
+
+        DataGenerator userInfo = new DataGenerator();
+        RegistrationInfo infoClient = userInfo.generatedByInfo();
+        infoClient.setStatus("blocked");
+        String userJson = userInfo.generatedJson(infoClient);
+
+        given() // "дано"
+                .spec(requestSpec) // указываем, какую спецификацию используем
+                .body(userJson) // передаём в теле объект, который будет преобразован в JSON
+                .when() // "когда"
+                .post("/api/system/users") // на какой путь относительно BaseUri отправляем запрос
+                .then() // "тогда ожидаем"
+                .statusCode(200); // код 200 OK
+
+        $("[data-test-id=login] input").setValue(infoClient.getLogin());
+        $("[data-test-id=password] input").setValue(infoClient.getPassword());
+        $("[data-test-id=action-login].button").click();
+        $("[data-test-id=error-notification].notification .notification__content").shouldHave(Condition.exactText("Ошибка! Пользователь заблокирован"), Duration.ofSeconds(5)).shouldBe(Condition.visible);
+
+        infoClient.setStatus("active");
+        String userJsonSame = userInfo.generatedJson(infoClient);
+
+        open("http://localhost:9999/");
+        given() // "дано"
+                .spec(requestSpec) // указываем, какую спецификацию используем
+                .body(userJsonSame) // передаём в теле объект, который будет преобразован в JSON
+                .when() // "когда"
+                .post("/api/system/users") // на какой путь относительно BaseUri отправляем запрос
+                .then() // "тогда ожидаем"
+                .statusCode(200); // код 200 OK
+
+        $("[data-test-id=login] input").setValue(infoClient.getLogin());
+        $("[data-test-id=password] input").setValue(infoClient.getPassword());
+        $("[data-test-id=action-login].button").click();
+        $(".heading").shouldHave(Condition.exactText("  Личный кабинет")).shouldBe(Condition.visible);
+    }
 }

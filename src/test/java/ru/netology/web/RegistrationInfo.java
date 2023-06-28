@@ -22,16 +22,17 @@ public class RegistrationInfo {
     public String getStatus() {
         return this.status;
     }
+
     public void setLogin(String login) {
-        this.login=login;
+        this.login = login;
     }
 
     public void setPassword(String password) {
-        this.password=password;
+        this.password = password;
     }
 
     public void setStatus(String status) {
-        this.status=status;
+        this.status = status;
     }
 
 }
