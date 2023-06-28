@@ -8,6 +8,8 @@ import io.restassured.specification.RequestSpecification;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.open;
 import static io.restassured.RestAssured.given;
@@ -48,4 +50,111 @@ public class AuthTest {
         $("[data-test-id=action-login].button").click();
         $(".heading").shouldHave(Condition.exactText("  Личный кабинет")).shouldBe(Condition.visible);
     }
+
+    @Test
+    void shouldBeSameLogin() {
+        // сам запрос
+
+        DataGenerator userInfo = new DataGenerator();
+        RegistrationInfo infoClient = userInfo.generatedByInfo();
+        String userJson = userInfo.generatedJson(infoClient);
+
+        given() // "дано"
+                .spec(requestSpec) // указываем, какую спецификацию используем
+                .body(userJson) // передаём в теле объект, который будет преобразован в JSON
+                .when() // "когда"
+                .post("/api/system/users") // на какой путь относительно BaseUri отправляем запрос
+                .then() // "тогда ожидаем"
+                .statusCode(200); // код 200 OK
+
+        $("[data-test-id=login] input").setValue(infoClient.getLogin());
+        $("[data-test-id=password] input").setValue(infoClient.getPassword());
+        $("[data-test-id=action-login].button").click();
+        $(".heading").shouldHave(Condition.exactText("  Личный кабинет")).shouldBe(Condition.visible);
+
+        DataGenerator userInfoSameLogin = new DataGenerator();
+        RegistrationInfo infoClientSame = userInfoSameLogin.generatedByInfo();
+        infoClientSame.setLogin(infoClient.getLogin());
+        String userJsonSame = userInfoSameLogin.generatedJson(infoClientSame);
+
+        open("http://localhost:9999/");
+        given() // "дано"
+                .spec(requestSpec) // указываем, какую спецификацию используем
+                .body(userJsonSame) // передаём в теле объект, который будет преобразован в JSON
+                .when() // "когда"
+                .post("/api/system/users") // на какой путь относительно BaseUri отправляем запрос
+                .then() // "тогда ожидаем"
+                .statusCode(200); // код 200 OK
+
+        $("[data-test-id=login] input").setValue(infoClientSame.getLogin());
+        $("[data-test-id=password] input").setValue(infoClientSame.getPassword());
+        $("[data-test-id=action-login].button").click();
+        $(".heading").shouldHave(Condition.exactText("  Личный кабинет")).shouldBe(Condition.visible);
+
+    }
+    @Test
+    void shouldBeBlockedUser() {
+        // сам запрос
+
+        DataGenerator userInfo = new DataGenerator();
+        RegistrationInfo infoClient = userInfo.generatedByInfo();
+        infoClient.setStatus("blocked");
+        String userJson = userInfo.generatedJson(infoClient);
+
+        given() // "дано"
+                .spec(requestSpec) // указываем, какую спецификацию используем
+                .body(userJson) // передаём в теле объект, который будет преобразован в JSON
+                .when() // "когда"
+                .post("/api/system/users") // на какой путь относительно BaseUri отправляем запрос
+                .then() // "тогда ожидаем"
+                .statusCode(200); // код 200 OK
+
+        $("[data-test-id=login] input").setValue(infoClient.getLogin());
+        $("[data-test-id=password] input").setValue(infoClient.getPassword());
+        $("[data-test-id=action-login].button").click();
+        $("[data-test-id=error-notification].notification .notification__content").shouldHave(Condition.exactText("Ошибка! Пользователь заблокирован"), Duration.ofSeconds(5)).shouldBe(Condition.visible);
+    }
+    @Test
+    void shouldBeFailedStatus() {
+        // сам запрос
+
+        DataGenerator userInfo = new DataGenerator();
+        RegistrationInfo infoClient = userInfo.generatedByInfo();
+        infoClient.setStatus(infoClient.getPassword());
+        String userJson = userInfo.generatedJson(infoClient);
+
+        given() // "дано"
+                .spec(requestSpec) // указываем, какую спецификацию используем
+                .body(userJson) // передаём в теле объект, который будет преобразован в JSON
+                .when() // "когда"
+                .post("/api/system/users") // на какой путь относительно BaseUri отправляем запрос
+                .then() // "тогда ожидаем"
+                .statusCode(500); // код 200 OK
+    }
+
+    @Test
+    void shouldBeNullPassword() {
+        // сам запрос
+
+        DataGenerator userInfo = new DataGenerator();
+        RegistrationInfo infoClient = userInfo.generatedByInfo();
+        infoClient.setPassword("");
+        String userJson = userInfo.generatedJson(infoClient);
+
+        given() // "дано"
+                .spec(requestSpec) // указываем, какую спецификацию используем
+                .body(userJson) // передаём в теле объект, который будет преобразован в JSON
+                .when() // "когда"
+                .post("/api/system/users") // на какой путь относительно BaseUri отправляем запрос
+                .then() // "тогда ожидаем"
+                .statusCode(200); // код 200 OK
+
+        $("[data-test-id=login] input").setValue(infoClient.getLogin());
+        $("[data-test-id=password] input").setValue(infoClient.getPassword());
+        $("[data-test-id=action-login].button").click();
+        $("[data-test-id=password].input .input__sub").shouldHave(Condition.exactText("Поле обязательно для заполнения"), Duration.ofSeconds(5)).shouldBe(Condition.visible);
+    }
+
+
+
 }

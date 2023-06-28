@@ -1,9 +1,9 @@
 package ru.netology.web;
 
 public class RegistrationInfo {
-    private final String login;
-    private final String password;
-    private final String status;
+    private String login;
+    private String password;
+    private String status;
 
     public RegistrationInfo(String login, String password, String status) {
         this.login = login;
@@ -22,7 +22,17 @@ public class RegistrationInfo {
     public String getStatus() {
         return this.status;
     }
+    public void setLogin(String login) {
+        this.login=login;
+    }
 
+    public void setPassword(String password) {
+        this.password=password;
+    }
+
+    public void setStatus(String status) {
+        this.status=status;
+    }
 
 }
 
