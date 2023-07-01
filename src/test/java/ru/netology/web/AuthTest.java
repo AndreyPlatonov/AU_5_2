@@ -1,10 +1,6 @@
 package ru.netology.web;
 
 import com.codeborne.selenide.Condition;
-import io.restassured.builder.RequestSpecBuilder;
-import io.restassured.filter.log.LogDetail;
-import io.restassured.http.ContentType;
-import io.restassured.specification.RequestSpecification;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -12,18 +8,9 @@ import java.time.Duration;
 
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.open;
-import static io.restassured.RestAssured.given;
 
 
 public class AuthTest {
-
-    public static RequestSpecification requestSpec = new RequestSpecBuilder()
-            .setBaseUri("http://localhost")
-            .setPort(9999)
-            .setAccept(ContentType.JSON)
-            .setContentType(ContentType.JSON)
-            .log(LogDetail.ALL)
-            .build();
 
     @BeforeEach
     public void setUp() {
@@ -32,19 +19,9 @@ public class AuthTest {
 
     @Test
     void shouldBeSuccess() {
-        // сам запрос
 
-        DataGenerator userInfo = new DataGenerator();
-        RegistrationInfo infoClient = userInfo.generatedByInfo();
-        String userJson = userInfo.generatedJson(infoClient);
-
-        given() // "дано"
-                .spec(requestSpec) // указываем, какую спецификацию используем
-                .body(userJson) // передаём в теле объект, который будет преобразован в JSON
-                .when() // "когда"
-                .post("/api/system/users") // на какой путь относительно BaseUri отправляем запрос
-                .then() // "тогда ожидаем"
-                .statusCode(200); // код 200 OK
+        var infoClient = DataGenerator.generatedByInfo("active");
+        DataGenerator.sendRequest(infoClient);
 
         $("[data-test-id=login] input").setValue(infoClient.getLogin());
         $("[data-test-id=password] input").setValue(infoClient.getPassword());
@@ -54,38 +31,19 @@ public class AuthTest {
 
     @Test
     void shouldBeSameLogin() {
-        // сам запрос
 
-        DataGenerator userInfo = new DataGenerator();
-        RegistrationInfo infoClient = userInfo.generatedByInfo();
-        String userJson = userInfo.generatedJson(infoClient);
-
-        given() // "дано"
-                .spec(requestSpec) // указываем, какую спецификацию используем
-                .body(userJson) // передаём в теле объект, который будет преобразован в JSON
-                .when() // "когда"
-                .post("/api/system/users") // на какой путь относительно BaseUri отправляем запрос
-                .then() // "тогда ожидаем"
-                .statusCode(200); // код 200 OK
+        var infoClient = DataGenerator.generatedByInfo("active");
+        DataGenerator.sendRequest(infoClient);
 
         $("[data-test-id=login] input").setValue(infoClient.getLogin());
         $("[data-test-id=password] input").setValue(infoClient.getPassword());
         $("[data-test-id=action-login].button").click();
         $(".heading").shouldHave(Condition.exactText("  Личный кабинет")).shouldBe(Condition.visible);
 
-        DataGenerator userInfoSameLogin = new DataGenerator();
-        RegistrationInfo infoClientSame = userInfoSameLogin.generatedByInfo();
-        infoClientSame.setLogin(infoClient.getLogin());
-        String userJsonSame = userInfoSameLogin.generatedJson(infoClientSame);
+        var infoClientSame = DataGenerator.generatedByInfoLogin(infoClient);
+        DataGenerator.sendRequest(infoClientSame);
 
         open("http://localhost:9999/");
-        given() // "дано"
-                .spec(requestSpec) // указываем, какую спецификацию используем
-                .body(userJsonSame) // передаём в теле объект, который будет преобразован в JSON
-                .when() // "когда"
-                .post("/api/system/users") // на какой путь относительно BaseUri отправляем запрос
-                .then() // "тогда ожидаем"
-                .statusCode(200); // код 200 OK
 
         $("[data-test-id=login] input").setValue(infoClientSame.getLogin());
         $("[data-test-id=password] input").setValue(infoClientSame.getPassword());
@@ -96,20 +54,9 @@ public class AuthTest {
 
     @Test
     void shouldBeBlockedUser() {
-        // сам запрос
 
-        DataGenerator userInfo = new DataGenerator();
-        RegistrationInfo infoClient = userInfo.generatedByInfo();
-        infoClient.setStatus("blocked");
-        String userJson = userInfo.generatedJson(infoClient);
-
-        given() // "дано"
-                .spec(requestSpec) // указываем, какую спецификацию используем
-                .body(userJson) // передаём в теле объект, который будет преобразован в JSON
-                .when() // "когда"
-                .post("/api/system/users") // на какой путь относительно BaseUri отправляем запрос
-                .then() // "тогда ожидаем"
-                .statusCode(200); // код 200 OK
+        var infoClient = DataGenerator.generatedByInfo("blocked");
+        DataGenerator.sendRequest(infoClient);
 
         $("[data-test-id=login] input").setValue(infoClient.getLogin());
         $("[data-test-id=password] input").setValue(infoClient.getPassword());
@@ -119,38 +66,17 @@ public class AuthTest {
 
     @Test
     void shouldBeFailedStatus() {
-        // сам запрос
 
-        DataGenerator userInfo = new DataGenerator();
-        RegistrationInfo infoClient = userInfo.generatedByInfo();
-        infoClient.setStatus(infoClient.getPassword());
-        String userJson = userInfo.generatedJson(infoClient);
+        var infoClient = DataGenerator.generatedByInfo("AAAAA");
+        DataGenerator.sendRequestFail(infoClient);
 
-        given() // "дано"
-                .spec(requestSpec) // указываем, какую спецификацию используем
-                .body(userJson) // передаём в теле объект, который будет преобразован в JSON
-                .when() // "когда"
-                .post("/api/system/users") // на какой путь относительно BaseUri отправляем запрос
-                .then() // "тогда ожидаем"
-                .statusCode(500); // код 200 OK
     }
 
     @Test
     void shouldBeNullPassword() {
-        // сам запрос
 
-        DataGenerator userInfo = new DataGenerator();
-        RegistrationInfo infoClient = userInfo.generatedByInfo();
-        infoClient.setPassword("");
-        String userJson = userInfo.generatedJson(infoClient);
-
-        given() // "дано"
-                .spec(requestSpec) // указываем, какую спецификацию используем
-                .body(userJson) // передаём в теле объект, который будет преобразован в JSON
-                .when() // "когда"
-                .post("/api/system/users") // на какой путь относительно BaseUri отправляем запрос
-                .then() // "тогда ожидаем"
-                .statusCode(200); // код 200 OK
+        var infoClient = DataGenerator.generatedByNullPassword("active");
+        DataGenerator.sendRequest(infoClient);
 
         $("[data-test-id=login] input").setValue(infoClient.getLogin());
         $("[data-test-id=password] input").setValue(infoClient.getPassword());
@@ -160,20 +86,9 @@ public class AuthTest {
 
     @Test
     void shouldBeNullLogin() {
-        // сам запрос
 
-        DataGenerator userInfo = new DataGenerator();
-        RegistrationInfo infoClient = userInfo.generatedByInfo();
-        infoClient.setLogin("");
-        String userJson = userInfo.generatedJson(infoClient);
-
-        given() // "дано"
-                .spec(requestSpec) // указываем, какую спецификацию используем
-                .body(userJson) // передаём в теле объект, который будет преобразован в JSON
-                .when() // "когда"
-                .post("/api/system/users") // на какой путь относительно BaseUri отправляем запрос
-                .then() // "тогда ожидаем"
-                .statusCode(200); // код 200 OK
+        var infoClient = DataGenerator.generatedByNullLogin("active");
+        DataGenerator.sendRequest(infoClient);
 
         $("[data-test-id=login] input").setValue(infoClient.getLogin());
         $("[data-test-id=password] input").setValue(infoClient.getPassword());
@@ -183,36 +98,20 @@ public class AuthTest {
 
     @Test
     void shouldBeFromActiveToBlocked() {
-        // сам запрос
 
-        DataGenerator userInfo = new DataGenerator();
-        RegistrationInfo infoClient = userInfo.generatedByInfo();
-        String userJson = userInfo.generatedJson(infoClient);
-
-        given() // "дано"
-                .spec(requestSpec) // указываем, какую спецификацию используем
-                .body(userJson) // передаём в теле объект, который будет преобразован в JSON
-                .when() // "когда"
-                .post("/api/system/users") // на какой путь относительно BaseUri отправляем запрос
-                .then() // "тогда ожидаем"
-                .statusCode(200); // код 200 OK
+        var infoClient = DataGenerator.generatedByInfo("active");
+        DataGenerator.sendRequest(infoClient);
 
         $("[data-test-id=login] input").setValue(infoClient.getLogin());
         $("[data-test-id=password] input").setValue(infoClient.getPassword());
         $("[data-test-id=action-login].button").click();
         $(".heading").shouldHave(Condition.exactText("  Личный кабинет")).shouldBe(Condition.visible);
 
-        infoClient.setStatus("blocked");
-        String userJsonSame = userInfo.generatedJson(infoClient);
+
+        infoClient = DataGenerator.deactivatedUser(infoClient);
+        DataGenerator.sendRequest(infoClient);
 
         open("http://localhost:9999/");
-        given() // "дано"
-                .spec(requestSpec) // указываем, какую спецификацию используем
-                .body(userJsonSame) // передаём в теле объект, который будет преобразован в JSON
-                .when() // "когда"
-                .post("/api/system/users") // на какой путь относительно BaseUri отправляем запрос
-                .then() // "тогда ожидаем"
-                .statusCode(200); // код 200 OK
 
         $("[data-test-id=login] input").setValue(infoClient.getLogin());
         $("[data-test-id=password] input").setValue(infoClient.getPassword());
@@ -223,37 +122,19 @@ public class AuthTest {
 
     @Test
     void shouldBeFromBlockedToActive() {
-        // сам запрос
 
-        DataGenerator userInfo = new DataGenerator();
-        RegistrationInfo infoClient = userInfo.generatedByInfo();
-        infoClient.setStatus("blocked");
-        String userJson = userInfo.generatedJson(infoClient);
-
-        given() // "дано"
-                .spec(requestSpec) // указываем, какую спецификацию используем
-                .body(userJson) // передаём в теле объект, который будет преобразован в JSON
-                .when() // "когда"
-                .post("/api/system/users") // на какой путь относительно BaseUri отправляем запрос
-                .then() // "тогда ожидаем"
-                .statusCode(200); // код 200 OK
+        var infoClient = DataGenerator.generatedByInfo("blocked");
+        DataGenerator.sendRequest(infoClient);
 
         $("[data-test-id=login] input").setValue(infoClient.getLogin());
         $("[data-test-id=password] input").setValue(infoClient.getPassword());
         $("[data-test-id=action-login].button").click();
         $("[data-test-id=error-notification].notification .notification__content").shouldHave(Condition.exactText("Ошибка! Пользователь заблокирован"), Duration.ofSeconds(5)).shouldBe(Condition.visible);
 
-        infoClient.setStatus("active");
-        String userJsonSame = userInfo.generatedJson(infoClient);
+        infoClient = DataGenerator.activatedUser(infoClient);
+        DataGenerator.sendRequest(infoClient);
 
         open("http://localhost:9999/");
-        given() // "дано"
-                .spec(requestSpec) // указываем, какую спецификацию используем
-                .body(userJsonSame) // передаём в теле объект, который будет преобразован в JSON
-                .when() // "когда"
-                .post("/api/system/users") // на какой путь относительно BaseUri отправляем запрос
-                .then() // "тогда ожидаем"
-                .statusCode(200); // код 200 OK
 
         $("[data-test-id=login] input").setValue(infoClient.getLogin());
         $("[data-test-id=password] input").setValue(infoClient.getPassword());
