@@ -61,6 +61,12 @@ public class DataGenerator {
                 faker.internet().password(),
                 regInfo.getStatus());
     }
+    public static RegistrationInfo generatedByInfoPassword(RegistrationInfo regInfo) {
+        return new RegistrationInfo(
+                faker.name().username(),
+                regInfo.getPassword(),
+                regInfo.getStatus());
+    }
 
     public static RegistrationInfo activatedUser(RegistrationInfo regInfo) {
         return new RegistrationInfo(

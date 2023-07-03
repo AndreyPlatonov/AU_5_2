@@ -30,7 +30,7 @@ public class AuthTest {
     }
 
     @Test
-    void shouldBeSameLogin() {
+    void shouldBeSameUser() {
 
         var infoClient = DataGenerator.generatedByInfo("active");
         DataGenerator.sendRequest(infoClient);
@@ -40,13 +40,12 @@ public class AuthTest {
         $("[data-test-id=action-login].button").click();
         $(".heading").shouldHave(Condition.exactText("  Личный кабинет")).shouldBe(Condition.visible);
 
-        var infoClientSame = DataGenerator.generatedByInfoLogin(infoClient);
-        DataGenerator.sendRequest(infoClientSame);
+        DataGenerator.sendRequest(infoClient);
 
         open("http://localhost:9999/");
 
-        $("[data-test-id=login] input").setValue(infoClientSame.getLogin());
-        $("[data-test-id=password] input").setValue(infoClientSame.getPassword());
+        $("[data-test-id=login] input").setValue(infoClient.getLogin());
+        $("[data-test-id=password] input").setValue(infoClient.getPassword());
         $("[data-test-id=action-login].button").click();
         $(".heading").shouldHave(Condition.exactText("  Личный кабинет")).shouldBe(Condition.visible);
 
@@ -140,5 +139,34 @@ public class AuthTest {
         $("[data-test-id=password] input").setValue(infoClient.getPassword());
         $("[data-test-id=action-login].button").click();
         $(".heading").shouldHave(Condition.exactText("  Личный кабинет")).shouldBe(Condition.visible);
+    }
+
+    @Test
+    void shouldBeWrongLogin(){
+
+        var infoClient = DataGenerator.generatedByInfo("active");
+        DataGenerator.sendRequest(infoClient);
+
+        infoClient=DataGenerator.generatedByInfoPassword(infoClient);
+
+        $("[data-test-id=login] input").setValue(infoClient.getLogin());
+        $("[data-test-id=password] input").setValue(infoClient.getPassword());
+        $("[data-test-id=action-login].button").click();
+        $("[data-test-id=error-notification].notification .notification__content").shouldHave(Condition.exactText("Ошибка! Неверно указан логин или пароль"), Duration.ofSeconds(5)).shouldBe(Condition.visible);
+
+    }
+
+    @Test
+    void shouldBeWrongPassword(){
+
+        var infoClient = DataGenerator.generatedByInfo("active");
+        DataGenerator.sendRequest(infoClient);
+
+        infoClient=DataGenerator.generatedByInfoLogin(infoClient);
+
+        $("[data-test-id=login] input").setValue(infoClient.getLogin());
+        $("[data-test-id=password] input").setValue(infoClient.getPassword());
+        $("[data-test-id=action-login].button").click();
+        $("[data-test-id=error-notification].notification .notification__content").shouldHave(Condition.exactText("Ошибка! Неверно указан логин или пароль"), Duration.ofSeconds(5)).shouldBe(Condition.visible);
     }
 }
